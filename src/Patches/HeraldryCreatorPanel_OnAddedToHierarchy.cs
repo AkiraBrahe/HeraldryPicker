@@ -1,6 +1,7 @@
 ﻿using BattleTech.UI;
 using BattleTech.UI.TMProWrapper;
 using HeraldryPicker.Widgets;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -71,6 +72,68 @@ namespace HeraldryPicker.Patches
                     heraldrySelector.SetActive(false);
                 });
             }
+        }
+    }
+
+    #endregion
+
+    #region Faction Filter Dropdown
+
+    /// <summary>
+    /// Activates and populates the faction filter dropdown in the Heraldry selector.
+    /// </summary>
+    [HarmonyPatch(typeof(HeraldryCreatorPanel), "OnAddedToHierarchy")]
+    public static class HeraldryCreatorPanel_OnAddedToHierarchy_FactionFilter
+    {
+        [HarmonyPrepare]
+        public static bool Prepare() => Main.Settings.EnableHeraldryFiltering;
+
+        [HarmonyPostfix, HarmonyPriority(Priority.Low)]
+        public static void Postfix(HeraldryCreatorPanel __instance)
+        {
+            var heraldrySelector = __instance.transform.Find("Representation/uixPrfPanl_companyHeraldrySelector").gameObject;
+            if (heraldrySelector == null) return;
+
+            var heraldryPicker = heraldrySelector.GetComponent<HeraldryPickerWidget>();
+            if (heraldrySelector == null || heraldryPicker == null) return;
+
+            var squareGo = heraldrySelector.transform.Find("Representation/title-layout/square")?.gameObject;
+            var dropdownGo = heraldrySelector.transform.Find("Representation/content-layout/filterDropdown-unused")?.gameObject;
+            var fieldGo = dropdownGo?.transform.Find("uixPrfField_dropdown")?.gameObject;
+            var dropdown = dropdownGo?.GetComponentInChildren<HBS_Dropdown>(true);
+            if (squareGo == null || dropdownGo == null || fieldGo == null || dropdown == null) return;
+
+            var squareButton = squareGo.GetComponent<Button>() ?? squareGo.AddComponent<Button>();
+            squareButton.onClick.RemoveAllListeners();
+            squareButton.onClick.AddListener(() => dropdownGo.SetActive(!dropdownGo.activeSelf));
+
+            dropdownGo.SetActive(true);
+            fieldGo.SetActive(true);
+
+            PopulateDropdown(dropdown, heraldryPicker);
+        }
+
+        private static void PopulateDropdown(HBS_Dropdown dropdown, HeraldryPickerWidget heraldryPicker)
+        {
+            dropdown.ClearOptions();
+            dropdown.onValueChanged.RemoveAllListeners();
+
+            if (FactionGroupManager.IsCustomFilterActive)
+            {
+                var factions = heraldryPicker.GetFactionNames();
+                dropdown.AddOptions(["All"]);
+                dropdown.AddOptions(factions.OrderBy(f => f).ToList());
+            }
+            else
+            {
+                dropdown.AddOptions(["All", "Vanilla", "Modded"]);
+            }
+
+            dropdown.onValueChanged.AddListener(index =>
+            {
+                string selectedFilter = dropdown.options[index].text;
+                heraldryPicker.FilterHeraldries(selectedFilter);
+            });
         }
     }
 

@@ -153,5 +153,38 @@ namespace HeraldryPicker.Widgets
             selectedElement?.SetSelected(false);
             selectedElement = null;
         }
+
+        public IEnumerable<string> GetFactionNames()
+        {
+            return allHeraldryDefs
+                .Select(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", "")))
+                .Distinct();
+        }
+
+        public void FilterHeraldries(string filterType)
+        {
+            foreach (var element in allHeraldryElements)
+            {
+                if (filterType.Equals("All", StringComparison.OrdinalIgnoreCase))
+                {
+                    element.gameObject.SetActive(true);
+                }
+                else if (filterType.Equals("Vanilla", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool isVanilla = HeraldryExporter.vanillaHeraldries.Contains(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    element.gameObject.SetActive(isVanilla);
+                }
+                else if (filterType.Equals("Modded", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool isVanilla = HeraldryExporter.vanillaHeraldries.Contains(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    element.gameObject.SetActive(!isVanilla);
+                }
+                else
+                {
+                    string elementGroup = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    element.gameObject.SetActive(elementGroup.Equals(filterType, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+        }
     }
 }
