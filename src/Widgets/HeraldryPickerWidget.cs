@@ -62,10 +62,13 @@ namespace HeraldryPicker.Widgets
                     allHeraldryDefs.Add(def);
                 }
             }
-            allHeraldryDefs = [.. allHeraldryDefs
-                .OrderBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", "")))
-                .ThenBy(def => def.Description.Name)
-                .ThenBy(def => def.Description.Id, new Utils.NaturalStringComparer())];
+            allHeraldryDefs = Main.Settings.GroupHeraldryByFaction
+                ? [.. allHeraldryDefs
+                    .OrderBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", "")))
+                    .ThenBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", ""))
+                        .Equals(def.Description.Id.Replace("heraldrydef_", ""), StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                    .ThenBy(def => def.Description.Name, new Utils.NaturalStringComparer())]
+                : [.. allHeraldryDefs.OrderBy(def => def.Description.Name, new Utils.NaturalStringComparer())];
             loadingNotification?.SetActive(false);
             OnAllHeraldryLoaded();
             onSuccess?.Invoke();

@@ -20,6 +20,7 @@ namespace HeraldryPicker
             public bool ShowColorNameOnEachSwatch { get; set; } = true;
             public bool EnableHeraldryFiltering { get; set; } = true;
             public string HeraldryFilterGroup { get; set; } = "NotSet";
+            public bool GroupHeraldryByFaction { get; set; } = false;
         }
 
         public static void Init(string directory, string settingsJSON)
@@ -53,7 +54,7 @@ namespace HeraldryPicker
         {
             if (!Settings.EnableHeraldryFiltering)
             {
-                Log.Log("Heraldry filtering is disabled.");
+                Log.Log("Faction filtering is disabled.");
                 return;
             }
 
