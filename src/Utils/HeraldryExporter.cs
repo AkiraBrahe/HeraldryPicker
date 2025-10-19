@@ -1,6 +1,8 @@
-﻿using BattleTech;
+using BattleTech;
 using BattleTech.Data;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -8,10 +10,18 @@ namespace HeraldryPicker.Utils
 {
     internal class HeraldryExporter
     {
+        private readonly struct HeraldryExportData
+        {
+            public string Name { get; }
+            public string Id { get; }
+            public string Group { get; }
+            public HeraldryExportData(string name, string id, string group) => (Name, Id, Group) = (name, id, group);
+        }
+
         private static bool exported = false;
 
         /// <summary>
-        /// Exports all heraldries present in the game to a dictionary-style format.
+        /// Exports all heraldries present in the game to an external CSV file.
         /// </summary>
         public static void ExportHeraldries(DataManager dataManager)
         {
@@ -19,9 +29,9 @@ namespace HeraldryPicker.Utils
 
             try
             {
-                var filterGroupDir = System.IO.Path.Combine(Main.ModDir, "FilterGroups");
-                System.IO.Directory.CreateDirectory(filterGroupDir);
-                var exportPath = System.IO.Path.Combine(filterGroupDir, "AllHeraldries.json");
+                string filterGroupDir = Path.Combine(Main.ModDir, "FilterGroups");
+                Directory.CreateDirectory(filterGroupDir);
+                string exportPath = Path.Combine(filterGroupDir, "AllHeraldries.csv");
 
                 var allHeraldryDefs = new List<HeraldryDef>();
                 foreach (var kvp in dataManager.Heraldries)
@@ -33,22 +43,44 @@ namespace HeraldryPicker.Utils
                     }
                 }
 
-                var heraldryList = allHeraldryDefs.Select(h => new
-                {
-                    Name = Regex.Replace(h.Description.Name, @"(\p{Ll})(\p{Lu})", "$1 $2"),
-                    Id = h.Description.Id.Replace("heraldrydef_", ""),
-                    Group = vanillaHeraldries.Contains(h.Description.Id.Replace("heraldrydef_", "")) ? "Vanilla" : ""
-                }).OrderBy(h => h.Name).ThenBy(h => h.Id, new NaturalStringComparer());
+                var heraldryList = allHeraldryDefs.Select(h => new HeraldryExportData(
+                    PrettifyName(h.Description.Name).Replace(",", ""),
+                    h.Description.Id.Replace("heraldrydef_", ""),
+                    vanillaHeraldries.Contains(h.Description.Id.Replace("heraldrydef_", "")) ? "Vanilla" : ""
+                )).OrderBy(h => h.Name).ThenBy(h => h.Id, new NaturalStringComparer()).ToList();
 
-                var json = Newtonsoft.Json.JsonConvert.SerializeObject(heraldryList, Newtonsoft.Json.Formatting.Indented);
-                System.IO.File.WriteAllText(exportPath, json);
-                Main.Log.LogDebug($"Exported {dataManager.Heraldries.Count} heraldries to {exportPath}");
+                File.WriteAllLines(exportPath, CreateCsvLines(heraldryList));
+                Main.Log.LogDebug($"Successfully exported {heraldryList.Count()} heraldries to {exportPath}");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Main.Log.LogException("Failed to export heraldries.", ex);
             }
-            finally { exported = true; }
+            finally
+            {
+                exported = true;
+            }
+        }
+
+        /// <summary>
+        /// Converts a PascalCase string to a more human-readable "Pascal Case" string.
+        /// </summary>
+        private static string PrettifyName(string name) => Regex.Replace(name ?? string.Empty, @"(\p{Ll})(\p{Lu})", "$1 $2");
+
+        /// <summary>
+        /// Generates the full content for the CSV file line-by-line, including the header.
+        /// </summary>
+        private static IEnumerable<string> CreateCsvLines(IEnumerable<HeraldryExportData> records)
+        {
+            yield return "Name,Id,Group";
+
+            foreach (var record in records)
+            {
+                string name = record.Name;
+                string id = record.Id;
+                string group = record.Group;
+                yield return $"{name},{id},{group}";
+            }
         }
 
         internal static readonly HashSet<string> vanillaHeraldries =
