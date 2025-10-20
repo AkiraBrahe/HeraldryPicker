@@ -1,6 +1,7 @@
 using BattleTech;
 using BattleTech.Data;
 using BattleTech.UI;
+using BattleTech.UI.TMProWrapper;
 using HeraldryPicker.Utils;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace HeraldryPicker.Widgets
     {
         public RectTransform listParent;
         public GameObject loadingNotification;
+        public LocalizableText counterText;
         private DataManager dataManager;
         private UnityAction<HeraldryDef> heraldrySelectedCB;
         private List<HeraldryDef> allHeraldryDefs = [];
@@ -74,6 +76,7 @@ namespace HeraldryPicker.Widgets
                 : [.. allHeraldryDefs.OrderBy(def => def.Description.Name, new Utils.NaturalStringComparer())];
             loadingNotification?.SetActive(false);
             OnAllHeraldryLoaded();
+            UpdateCounter();
             onSuccess?.Invoke();
         }
 
@@ -190,6 +193,17 @@ namespace HeraldryPicker.Widgets
                     string elementGroup = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id);
                     element.gameObject.SetActive(elementGroup.Equals(filterType, StringComparison.OrdinalIgnoreCase));
                 }
+            }
+            UpdateCounter();
+        }
+
+        private void UpdateCounter()
+        {
+            if (counterText != null)
+            {
+                int activeCount = allHeraldryElements.Count(e => e.gameObject.activeSelf);
+                int totalCount = allHeraldryElements.Count;
+                counterText.text = $"{activeCount} / {totalCount}";
             }
         }
     }

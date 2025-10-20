@@ -2,6 +2,7 @@
 using BattleTech.UI.TMProWrapper;
 using HeraldryPicker.Widgets;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -111,6 +112,8 @@ namespace HeraldryPicker.Patches
             fieldGo.SetActive(true);
 
             PopulateDropdown(dropdown, heraldryPicker);
+            var counterText = AddCounter(dropdownGo.transform, heraldrySelector.transform);
+            heraldryPicker.counterText = counterText;
         }
 
         private static void PopulateDropdown(HBS_Dropdown dropdown, HeraldryPickerWidget heraldryPicker)
@@ -134,6 +137,33 @@ namespace HeraldryPicker.Patches
                 string selectedFilter = dropdown.options[index].text;
                 heraldryPicker.FilterHeraldries(selectedFilter);
             });
+        }
+
+        private static LocalizableText AddCounter(Transform parent, Transform searchRoot)
+        {
+            if (parent != null)
+            {
+                var counterGo = new GameObject("heraldryCounter");
+                counterGo.transform.SetParent(parent, false);
+                var counterText = counterGo.AddComponent<LocalizableText>();
+
+                var originalText = searchRoot.Find("Representation/title-layout/crests_text")?.GetComponent<LocalizableText>();
+                if (originalText != null)
+                {
+                    counterText.font = originalText.font;
+                    counterText.fontSize = 20;
+                    counterText.alignment = TextAlignmentOptions.MidlineRight;
+                }
+
+                var rectTransform = counterGo.GetComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(1, 0.5f);
+                rectTransform.anchorMax = new Vector2(1, 0.5f);
+                rectTransform.pivot = new Vector2(1, 0.5f);
+                rectTransform.anchoredPosition = new Vector2(-20, 0);
+                return counterText;
+            }
+
+            return null;
         }
     }
 
