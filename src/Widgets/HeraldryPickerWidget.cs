@@ -57,16 +57,19 @@ namespace HeraldryPicker.Widgets
             foreach (var kvp in dataManager.Heraldries)
             {
                 var def = kvp.Value;
-                if (def != null)
+                if (def == null) continue;
+
+                bool isDupe = FactionGroupManager.GetGroupForHeraldry(def.Description.Id).Equals("Dupe");
+                if (!isDupe)
                 {
                     allHeraldryDefs.Add(def);
                 }
             }
             allHeraldryDefs = Main.Settings.GroupHeraldryByFaction
                 ? [.. allHeraldryDefs
-                    .OrderBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", "")))
-                    .ThenBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", ""))
-                        .Equals(def.Description.Id.Replace("heraldrydef_", ""), StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                    .OrderBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id))
+                    .ThenBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id)
+                        .Equals(def.Description.Id, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                     .ThenBy(def => def.Description.Name, new Utils.NaturalStringComparer())]
                 : [.. allHeraldryDefs.OrderBy(def => def.Description.Name, new Utils.NaturalStringComparer())];
             loadingNotification?.SetActive(false);
@@ -160,7 +163,7 @@ namespace HeraldryPicker.Widgets
         public IEnumerable<string> GetFactionNames()
         {
             return allHeraldryDefs
-                .Select(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id.Replace("heraldrydef_", "")))
+                .Select(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id))
                 .Distinct();
         }
 
@@ -168,23 +171,23 @@ namespace HeraldryPicker.Widgets
         {
             foreach (var element in allHeraldryElements)
             {
-                if (filterType.Equals("All", StringComparison.OrdinalIgnoreCase))
+                if (filterType.Equals("All"))
                 {
                     element.gameObject.SetActive(true);
                 }
-                else if (filterType.Equals("Vanilla", StringComparison.OrdinalIgnoreCase))
+                else if (filterType.Equals("Vanilla"))
                 {
-                    bool isVanilla = HeraldryExporter.vanillaHeraldries.Contains(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    bool isVanilla = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id).Equals("Vanilla");
                     element.gameObject.SetActive(isVanilla);
                 }
-                else if (filterType.Equals("Modded", StringComparison.OrdinalIgnoreCase))
+                else if (filterType.Equals("Modded"))
                 {
-                    bool isVanilla = HeraldryExporter.vanillaHeraldries.Contains(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    bool isVanilla = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id).Equals("Vanilla");
                     element.gameObject.SetActive(!isVanilla);
                 }
                 else
                 {
-                    string elementGroup = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id.Replace("heraldrydef_", ""));
+                    string elementGroup = FactionGroupManager.GetGroupForHeraldry(element.heraldryDef.Description.Id);
                     element.gameObject.SetActive(elementGroup.Equals(filterType, StringComparison.OrdinalIgnoreCase));
                 }
             }

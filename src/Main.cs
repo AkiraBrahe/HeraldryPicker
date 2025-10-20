@@ -62,7 +62,7 @@ namespace HeraldryPicker
             {
                 bool isVanilla = Settings.HeraldryFilterGroup.Equals("Vanilla", StringComparison.OrdinalIgnoreCase);
                 Log.Log(isVanilla ? "Vanilla filter selected." : "No filter group selected. Falling back to 'vanilla/modded' filtering.");
-                FactionGroupManager.SetGroups(HeraldryExporter.vanillaHeraldries.ToDictionary(id => id, id => "Vanilla", StringComparer.OrdinalIgnoreCase));
+                FactionGroupManager.SetGroups(HeraldryExporter.vanillaHeraldries.ToDictionary(id => $"heraldrydef_{id}", id => "Vanilla", StringComparer.OrdinalIgnoreCase));
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace HeraldryPicker
             if (!File.Exists(filterFilePath))
             {
                 Log.LogError($"Filter group file '{Settings.HeraldryFilterGroup}' not found. Falling back to 'vanilla/modded' filtering.");
-                FactionGroupManager.SetGroups(HeraldryExporter.vanillaHeraldries.ToDictionary(id => id, id => "Vanilla", StringComparer.OrdinalIgnoreCase));
+                FactionGroupManager.SetGroups(HeraldryExporter.vanillaHeraldries.ToDictionary(id => $"heraldrydef_{id}", id => "Vanilla", StringComparer.OrdinalIgnoreCase));
                 return;
             }
 
@@ -85,7 +85,7 @@ namespace HeraldryPicker
                     string[] parts = line.Split(',');
                     if (parts.Length >= 2)
                     {
-                        string id = parts[1].Trim().Trim('"');
+                        string id = $"heraldrydef_{parts[1].Trim().Trim('"')}";
                         string group = parts.Length > 2 ? parts[2].Trim().Trim('"') : string.Empty;
                         heraldryList.Add(new HeraldryGroupInfo { Id = id, Group = group });
                     }
