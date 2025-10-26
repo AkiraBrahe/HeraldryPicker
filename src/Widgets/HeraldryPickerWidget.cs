@@ -125,21 +125,20 @@ namespace HeraldryPicker.Widgets
             var panel = GetComponentInParent<HeraldryCreatorPanel>();
             if (panel != null)
             {
-                if (panel.activeDef != null)
+                if (assignCrest)
                 {
-                    panel.activeDef.primaryMechColorID = def.primaryMechColorID;
-                    panel.activeDef.secondaryMechColorID = def.secondaryMechColorID;
-                    panel.activeDef.tertiaryMechColorID = def.tertiaryMechColorID;
-
-                    if (assignCrest)
-                    {
-                        panel.activeDef.textureLogoID = def.textureLogoID;
-                        panel.crestPicker.selectedCrest?.SetSelectedState(isSelected: false);
-                        panel.crestPicker.selectedCrest = null;
-                    }
+                    panel.activeDef?.textureLogoID = def.textureLogoID;
+                    panel.crestPicker.selectedCrest?.SetSelectedState(isSelected: false);
+                    panel.crestPicker.selectedCrest = null;
+                }
+                else
+                {
+                    panel.activeDef?.primaryMechColorID = def.primaryMechColorID;
+                    panel.activeDef?.secondaryMechColorID = def.secondaryMechColorID;
+                    panel.activeDef?.tertiaryMechColorID = def.tertiaryMechColorID;
+                    panel.colorPicker?.SetData(def.primaryMechColorID, def.secondaryMechColorID, def.tertiaryMechColorID, new UnityAction(panel.ColorPickerRefresh));
                 }
 
-                panel.colorPicker?.SetData(def.primaryMechColorID, def.secondaryMechColorID, def.tertiaryMechColorID, new UnityAction(panel.ColorPickerRefresh));
                 panel.RefreshHeraldry();
             }
         }
