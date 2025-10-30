@@ -1,18 +1,21 @@
-﻿using BattleTech.UI;
+﻿using BattleTech;
+using BattleTech.UI;
 using BattleTech.UI.TMProWrapper;
 using HeraldryPicker.Widgets;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HeraldryPicker.Patches
 {
-    #region Heraldry Tab
+    #region UI Setup
 
     /// <summary>
-    /// Adds a Heraldry tab to the Crest selector in the Customize Company menu
-    /// and sets up the UI to toggle between the Crest and Heraldry selectors.
+    /// Adds a heraldry tab to the crest selector and sets up the UI to toggle between the two panels.
     /// </summary>
     [HarmonyPatch(typeof(HeraldryCreatorPanel), "OnAddedToHierarchy")]
     public static class HeraldryCreatorPanel_OnAddedToHierarchy_HeraldryTab
@@ -76,12 +79,8 @@ namespace HeraldryPicker.Patches
         }
     }
 
-    #endregion
-
-    #region Faction Filter Dropdown
-
     /// <summary>
-    /// Activates and populates the faction filter dropdown in the Heraldry selector.
+    /// Activates and populates the faction filter dropdown in the heraldry selector.
     /// </summary>
     [HarmonyPatch(typeof(HeraldryCreatorPanel), "OnAddedToHierarchy")]
     public static class HeraldryCreatorPanel_OnAddedToHierarchy_FactionFilter
@@ -164,6 +163,81 @@ namespace HeraldryPicker.Patches
             }
 
             return null;
+        }
+    }
+
+    #endregion
+
+    #region State Management
+
+    /// <summary>
+    /// Resets the heraldry picker widget when the "Cancel" button is clicked.
+    /// </summary>
+    [HarmonyPatch(typeof(HeraldryCreatorPanel), "OnCancelClicked")]
+    public static class HeraldryCreatorPanel_OnCancelClicked
+    {
+        [HarmonyPostfix]
+        public static void Postfix(HeraldryCreatorPanel __instance)
+        {
+            var heraldryPickerWidget = __instance.GetComponentInChildren<HeraldryPickerWidget>(true);
+            heraldryPickerWidget?.ResetSelection();
+        }
+    }
+
+    /// <summary>
+    /// Resets the heraldry picker widget when the "Reset" button is clicked.
+    /// </summary>
+    [HarmonyPatch(typeof(HeraldryCreatorPanel), "OnResetClicked")]
+    public static class HeraldryCreatorPanel_OnResetClicked
+    {
+        [HarmonyPostfix]
+        public static void Postfix(HeraldryCreatorPanel __instance)
+        {
+            var heraldryPickerWidget = __instance.GetComponentInChildren<HeraldryPickerWidget>(true);
+            heraldryPickerWidget?.ResetSelection();
+        }
+    }
+
+    #endregion
+
+    #region Data Persistence Fixes
+
+    /// <summary>
+    /// Prevents overwriting a custom crest selection when refreshing the heraldry.
+    /// </summary>
+    [HarmonyPatch(typeof(HeraldryCreatorPanel), "RefreshHeraldry")]
+    public static class HeraldryCreatorPanel_RefreshHeraldry
+    {
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
+        {
+            return new CodeMatcher(instructions, il)
+                .Advance(6).CreateLabel(out var skipLabel)
+                .Start().InsertAndAdvance(
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, typeof(HeraldryCreatorPanel).GetField("crestPicker", BindingFlags.Instance | BindingFlags.NonPublic)),
+                    new CodeInstruction(OpCodes.Ldfld, typeof(HeraldryCrestPickerWidget).GetField("selectedCrest", BindingFlags.Instance | BindingFlags.NonPublic)),
+                    new CodeInstruction(OpCodes.Brfalse, skipLabel))
+                .InstructionEnumeration();
+        }
+    }
+
+    /// <summary>
+    /// Ensures the correct crest ID is saved when applying a crest from a heraldry.
+    /// </summary>
+    [HarmonyPatch(typeof(HeraldryCreatorPanel), "SaveHeraldry")]
+    public static class HeraldryCreatorPanel_SaveHeraldry
+    {
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
+        {
+            return new CodeMatcher(instructions, il)
+                .MatchForward(false,
+                    new CodeMatch(i => i.opcode == OpCodes.Ldfld && i.operand is FieldInfo fi && fi.Name == "crestPicker"),
+                    new CodeMatch(i => i.opcode == OpCodes.Callvirt && i.operand is MethodInfo mi && mi.Name == "get_selectedCrestId"))
+                .SetOperandAndAdvance(typeof(HeraldryCreatorPanel).GetField("activeDef", BindingFlags.Instance | BindingFlags.NonPublic))
+                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldfld, typeof(HeraldryDef).GetField("textureLogoID", BindingFlags.Instance | BindingFlags.Public)))
+                .InstructionEnumeration();
         }
     }
 

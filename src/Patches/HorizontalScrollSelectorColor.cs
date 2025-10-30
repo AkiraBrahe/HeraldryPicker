@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace HeraldryPicker.Patches
 {
     /// <summary>
-    /// Shows the selected color name in the header of the color selector.
+    /// Shows the selected color name in the header of the color selectors.
     /// </summary>
     [HarmonyPatch(typeof(HorizontalScrollSelectorColor), "SetColor")]
     public static class HorizontalScrollSelectorColor_SetColor_HeaderName
@@ -27,7 +27,7 @@ namespace HeraldryPicker.Patches
     }
 
     /// <summary>
-    /// Shows the color name on each swatch in the color selector.
+    /// Shows the color name on each swatch of the color selectors.
     /// </summary>
     [HarmonyPatch(typeof(HorizontalScrollSelectorColor), "SetColor")]
     public static class HorizontalScrollSelectorColor_SetColor_SwatchNames
