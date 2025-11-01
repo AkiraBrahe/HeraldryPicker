@@ -3,43 +3,36 @@
     <Title>Heraldry Picker</Title>
     <Authors>Kierk</Authors>
     <Copyright>Copyright © 2025</Copyright>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFramework>net481</TargetFramework>
     <OutputType>Library</OutputType>
+    <TargetFramework>net481</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AssemblySearchPaths>{HintPathFromItem};$(BattleTechGameDir)\BattleTech_Data\Managed</AssemblySearchPaths>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>embedded</DebugType>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
     <PublicizerRuntimeStrategies>Unsafe</PublicizerRuntimeStrategies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\</OutputPath>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <OutputPath>..\</OutputPath>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <Target Name="CopyFilesToModFolder" AfterTargets="Build">
     <PropertyGroup>
       <ModFolder>$(BattleTechGameDir)\Mods\$(AssemblyName)\</ModFolder>
     </PropertyGroup>
     <ItemGroup>
-      <ModFiles Include="$(OutputPath)$(AssemblyName).dll" />
-      <ModFiles Include="$(ProjectDir)..\mod.json;$(ProjectDir)..\heraldry.png;$(ProjectDir)..\README.md" />
+      <ModFiles Include="$(TargetPath)" />
+      <ModFiles Include="$(ProjectDir)..\mod.json" />
+      <ModFiles Include="$(ProjectDir)..\README.md" />
     </ItemGroup>
-    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModFolder)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModFolder)" SkipUnchangedFiles="false" />
   </Target>
-  <ItemGroup>
-    <Compile Remove="References\**" />
-    <EmbeddedResource Remove="References\**" />
-    <None Remove="References\**" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="HarmonyX" Version="2.13.0">
       <PrivateAssets>all</PrivateAssets>

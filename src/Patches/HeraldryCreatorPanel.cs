@@ -62,6 +62,13 @@ namespace HeraldryPicker.Patches
                     crestSelector.SetActive(false);
                     heraldrySelector.SetActive(true);
 
+                    var spinner = heraldrySelector.GetComponentInChildren<UISpinner>(true);
+                    if (spinner != null)
+                    {
+                        spinner.enabled = false;
+                        spinner.enabled = true;
+                    }
+
                     if (pickerWidget.listParent.childCount == 0)
                     {
                         pickerWidget.SetData(panelInstance.dataManager, panelInstance.activeDef?.Description?.Id ?? string.Empty, null);
