@@ -29,7 +29,7 @@ namespace HeraldryPicker.Utils
     {
         /// <summary>
         /// Compares two strings and returns a value indicating whether one is less than,
-        //  equal to, or greater than the other, according to a “natural sort” algorithm.
+        /// equal to, or greater than the other, according to a “natural sort” algorithm.
         /// </summary>
         /// <param name="x">The first string to compare.</param>
         /// <param name="y">The second string to compare.</param>
