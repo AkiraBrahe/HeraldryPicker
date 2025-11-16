@@ -10,14 +10,6 @@ namespace HeraldryPicker.Utils
 {
     internal class HeraldryExporter
     {
-        private readonly struct HeraldryExportData
-        {
-            public string Name { get; }
-            public string Id { get; }
-            public string Group { get; }
-            public HeraldryExportData(string name, string id, string group) => (Name, Id, Group) = (name, id, group);
-        }
-
         private static bool exported = false;
 
         /// <summary>
@@ -44,10 +36,13 @@ namespace HeraldryPicker.Utils
                 }
 
                 var heraldryList = allHeraldryDefs.Select(h => new HeraldryExportData(
-                    PrettifyName(h.Description.Name).Replace(",", ""),
+                    PrettifyName(h.Description.Name),
                     h.Description.Id.Replace("heraldrydef_", ""),
-                    vanillaHeraldries.Contains(h.Description.Id.Replace("heraldrydef_", "")) ? "Vanilla" : ""
-                )).OrderBy(h => h.Name).ThenBy(h => h.Id, new NaturalStringComparer()).ToList();
+                    vanillaHeraldries.Contains(h.Description.Id.Replace("heraldrydef_", "")) ? "Vanilla" : "",
+                    h.primaryMechColorID,
+                    h.secondaryMechColorID,
+                    h.tertiaryMechColorID
+                )).OrderBy(h => h.Name, new NaturalStringComparer()).ThenBy(h => h.Id, new NaturalStringComparer()).ToList();
 
                 File.WriteAllLines(exportPath, CreateCsvLines(heraldryList));
                 Main.Log.LogDebug($"Successfully exported {heraldryList.Count()} heraldries to {exportPath}");
@@ -63,24 +58,32 @@ namespace HeraldryPicker.Utils
         }
 
         /// <summary>
-        /// Converts a PascalCase string to a more human-readable "Pascal Case" string.
+        /// Converts a PascalCase string to a more human-readable "Pascal Case" string. Excludes some prefixes from spacing.
         /// </summary>
-        private static string PrettifyName(string name) => Regex.Replace(name ?? string.Empty, @"(\p{Ll})(\p{Lu})", "$1 $2");
+        private static string PrettifyName(string name) => Regex.Replace(name ?? string.Empty, @"(\p{Ll})(\p{Lu})", "$1 $2")
+            .Replace("Com Star", "ComStar").Replace("Mac ", "Mac").Replace("Mc ", "Mc").Replace("Mech Warrior", "MechWarrior");
 
         /// <summary>
         /// Generates the full content for the CSV file line-by-line, including the header.
         /// </summary>
         private static IEnumerable<string> CreateCsvLines(IEnumerable<HeraldryExportData> records)
         {
-            yield return "Name,Id,Group";
+            static string Sanitize(string name) => name == null ? string.Empty : name.Contains(',') || name.Contains('"') || name.Contains('\n') ? $"\"{name.Replace("\"", "\"\"")}\"" : name;
 
-            foreach (var record in records)
-            {
-                string name = record.Name;
-                string id = record.Id;
-                string group = record.Group;
-                yield return $"{name},{id},{group}";
-            }
+            yield return "Name,Id,Group";
+            foreach (var record in records) yield return $"{Sanitize(record.Name)},{record.Id},{record.Group},{record.PrimaryMechColorID},{record.SecondaryMechColorID},{record.TertiaryMechColorID}";
+        }
+
+        internal readonly struct HeraldryExportData
+        {
+            public string Name { get; }
+            public string Id { get; }
+            public string Group { get; }
+            public string PrimaryMechColorID { get; }
+            public string SecondaryMechColorID { get; }
+            public string TertiaryMechColorID { get; }
+            public HeraldryExportData(string name, string id, string group, string primary, string secondary, string tertiary) =>
+                (Name, Id, Group, PrimaryMechColorID, SecondaryMechColorID, TertiaryMechColorID) = (name, id, group, primary, secondary, tertiary);
         }
 
         internal static readonly HashSet<string> vanillaHeraldries =
