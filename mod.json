@@ -5,7 +5,8 @@
   
   "Description": "Allows players to browse and select from all available paint schemes, while also adding color ID names to the customization swatches for quick identification.",
   "Author": "Kierk",
-  
+  "Website": "https://github.com/AkiraBrahe/HeraldryPicker",
+
   "DLL": "HeraldryPicker.dll",
 
   "Settings": {
@@ -13,13 +14,5 @@
     "EnableHeraldryFiltering": true,
       "HeraldryFilterGroup": "NotSet",
     "GroupHeraldryByFaction": false
-  },
-
-  "Manifest": [
-    {
-      "Type": "HeraldryDef",
-      "Path": "heraldryMerge",
-      "ShouldMergeJSON": true
-    }
-  ]
+  }
 }
