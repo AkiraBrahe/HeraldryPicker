@@ -9,14 +9,15 @@ using UnityEngine.UI;
 namespace HeraldryPicker.Widgets
 {
     /// <summary>
-    /// UI element for a single heraldry entry
+    /// UI element for a single heraldry entry.
     /// </summary>
     public class HeraldryPickerElement : MonoBehaviour
     {
         public HeraldryDef heraldryDef;
         private HBSDOTweenToggle heraldryBtn;
-        private UnityAction<HeraldryDef> onSelected;
-        public void SetData(HeraldryDef def, UnityAction<HeraldryDef> onSelected)
+        private UnityAction<HeraldryDef, bool> onSelected;
+
+        public void SetData(HeraldryDef def, UnityAction<HeraldryDef, bool> onSelected)
         {
             this.heraldryDef = def;
             this.onSelected = onSelected;
@@ -39,10 +40,14 @@ namespace HeraldryPicker.Widgets
 
             var button = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => onSelected?.Invoke(def));
+            button.onClick.AddListener(OnClick);
         }
 
-        public void OnClick() => onSelected?.Invoke(heraldryDef);
+        public void OnClick()
+        {
+            bool assignCrest = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            onSelected?.Invoke(heraldryDef, assignCrest);
+        }
 
         public void SetSelected(bool isSelected)
         {

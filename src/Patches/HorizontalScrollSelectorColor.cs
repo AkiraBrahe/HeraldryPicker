@@ -7,13 +7,13 @@ using UnityEngine.UI;
 namespace HeraldryPicker.Patches
 {
     /// <summary>
-    /// Shows the selected color name in the header of the color selector.
+    /// Shows the selected color name in the header of the color selectors.
     /// </summary>
     [HarmonyPatch(typeof(HorizontalScrollSelectorColor), "SetColor")]
     public static class HorizontalScrollSelectorColor_SetColor_HeaderName
     {
         [HarmonyPostfix]
-        public static void Postfix(int index, ColorSwatch option, HorizontalScrollSelectorColor __instance)
+        public static void Postfix(HorizontalScrollSelectorColor __instance, int index, ColorSwatch option)
         {
             if (index != 3) return;
 
@@ -27,7 +27,7 @@ namespace HeraldryPicker.Patches
     }
 
     /// <summary>
-    /// Shows the color name on each swatch in the color selector.
+    /// Shows the color name on each swatch of the color selectors.
     /// </summary>
     [HarmonyPatch(typeof(HorizontalScrollSelectorColor), "SetColor")]
     public static class HorizontalScrollSelectorColor_SetColor_SwatchNames
@@ -36,7 +36,7 @@ namespace HeraldryPicker.Patches
         public static bool Prepare() => Main.Settings.ShowColorNameOnEachSwatch;
 
         [HarmonyPostfix]
-        public static void Postfix(int index, ColorSwatch option, HorizontalScrollSelectorColor __instance)
+        public static void Postfix(HorizontalScrollSelectorColor __instance, int index, ColorSwatch option)
         {
             var colorSwatch = __instance.colorTrackers[index].gameObject;
             var textComponent = colorSwatch?.GetComponentInChildren<Text>();

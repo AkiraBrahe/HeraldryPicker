@@ -3,8 +3,11 @@ using UnityEngine;
 
 namespace HeraldryPicker.Utils
 {
-    public static class HierarchyLogger
+    internal class HierarchyLogger
     {
+        /// <summary>
+        /// Logs the hierarchy of GameObjects for debugging purposes.
+        /// </summary>
         internal static readonly ILog Log = HBS.Logging.Logger.GetLogger("Unity", LogLevel.Debug);
         public static void LogHierarchy(GameObject root, string prefix = "")
         {

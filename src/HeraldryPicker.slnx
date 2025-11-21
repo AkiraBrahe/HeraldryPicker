@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="HeraldryPicker.csproj" Id="17c62ae5-27a5-464a-89ec-d38c773879db" />
+  <Configurations>
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="HeraldryPicker.csproj" />
 </Solution>
