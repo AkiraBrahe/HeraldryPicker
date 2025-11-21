@@ -9,13 +9,14 @@ using UnityEngine.UI;
 namespace HeraldryPicker.Widgets
 {
     /// <summary>
-    /// UI element for a single heraldry entry
+    /// UI element for a single heraldry entry.
     /// </summary>
     public class HeraldryPickerElement : MonoBehaviour
     {
         public HeraldryDef heraldryDef;
         private HBSDOTweenToggle heraldryBtn;
         private UnityAction<HeraldryDef, bool> onSelected;
+
         public void SetData(HeraldryDef def, UnityAction<HeraldryDef, bool> onSelected)
         {
             this.heraldryDef = def;

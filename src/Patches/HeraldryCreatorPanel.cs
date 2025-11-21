@@ -102,7 +102,7 @@ namespace HeraldryPicker.Patches
             if (heraldrySelector == null) return;
 
             var heraldryPicker = heraldrySelector.GetComponent<HeraldryPickerWidget>();
-            if (heraldrySelector == null || heraldryPicker == null) return;
+            if (heraldryPicker == null) return;
 
             var squareGo = heraldrySelector.transform.Find("Representation/title-layout/square")?.gameObject;
             var dropdownGo = heraldrySelector.transform.Find("Representation/content-layout/filterDropdown-unused")?.gameObject;
@@ -117,32 +117,8 @@ namespace HeraldryPicker.Patches
             dropdownGo.SetActive(true);
             fieldGo.SetActive(true);
 
-            PopulateDropdown(dropdown, heraldryPicker);
-            var counterText = AddCounter(dropdownGo.transform, heraldrySelector.transform);
-            heraldryPicker.counterText = counterText;
-        }
-
-        private static void PopulateDropdown(HBS_Dropdown dropdown, HeraldryPickerWidget heraldryPicker)
-        {
-            dropdown.ClearOptions();
-            dropdown.onValueChanged.RemoveAllListeners();
-
-            if (FactionGroupManager.IsCustomFilterActive)
-            {
-                var factions = heraldryPicker.GetFactionNames();
-                dropdown.AddOptions(["All"]);
-                dropdown.AddOptions(factions.OrderBy(f => f).ToList());
-            }
-            else
-            {
-                dropdown.AddOptions(["All", "Vanilla", "Modded"]);
-            }
-
-            dropdown.onValueChanged.AddListener(index =>
-            {
-                string selectedFilter = dropdown.options[index].text;
-                heraldryPicker.FilterHeraldries(selectedFilter);
-            });
+            heraldryPicker.filterDropdown = dropdown;
+            heraldryPicker.counterText = AddCounter(dropdownGo.transform, heraldrySelector.transform);
         }
 
         private static LocalizableText AddCounter(Transform parent, Transform searchRoot)

@@ -70,7 +70,7 @@ namespace HeraldryPicker.Utils
         {
             static string Sanitize(string name) => name == null ? string.Empty : name.Contains(',') || name.Contains('"') || name.Contains('\n') ? $"\"{name.Replace("\"", "\"\"")}\"" : name;
 
-            yield return "Name,Id,Group";
+            yield return "Name,Id,Group,PrimaryColor,SecondaryColor,TertiaryColor";
             foreach (var record in records) yield return $"{Sanitize(record.Name)},{record.Id},{record.Group},{record.PrimaryMechColorID},{record.SecondaryMechColorID},{record.TertiaryMechColorID}";
         }
 

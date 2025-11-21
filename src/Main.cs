@@ -66,7 +66,7 @@ namespace HeraldryPicker
                 return;
             }
 
-            string filterFilePath = Path.Combine(ModDir, "FilterGroups", Settings.HeraldryFilterGroup);
+            string filterFilePath = Path.Combine(ModDir, "FilterGroups", Settings.HeraldryFilterGroup) + ".csv";
             if (!File.Exists(filterFilePath))
             {
                 Log.LogError($"Filter group file '{Settings.HeraldryFilterGroup}' not found. Falling back to 'vanilla/modded' filtering.");

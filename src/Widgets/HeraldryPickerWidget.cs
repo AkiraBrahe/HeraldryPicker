@@ -8,17 +8,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using NaturalStringComparer = HeraldryPicker.Utils.NaturalStringComparer;
 
 namespace HeraldryPicker.Widgets
 {
     /// <summary>
-    /// A widget for selecting a heraldry (faction paint scheme) from a scrollable list
+    /// A widget for selecting a heraldry from a scrollable list.
     /// </summary>
     public class HeraldryPickerWidget : MonoBehaviour
     {
         public RectTransform listParent;
         public GameObject loadingNotification;
         public LocalizableText counterText;
+        public HBS_Dropdown filterDropdown;
         private DataManager dataManager;
         private UnityAction<HeraldryDef> heraldrySelectedCB;
         private List<HeraldryDef> allHeraldryDefs = [];
@@ -41,7 +43,11 @@ namespace HeraldryPicker.Widgets
         private System.Collections.IEnumerator InitHeraldryList()
         {
             yield return null;
-            PopulateHeraldryList(OnHeraldryLoadSuccess);
+            PopulateHeraldryList(() =>
+            {
+                OnHeraldryLoadSuccess();
+                PopulateFilterDropdown();
+            });
         }
 
         private void OnHeraldryLoadSuccess()
@@ -72,8 +78,8 @@ namespace HeraldryPicker.Widgets
                     .OrderBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id))
                     .ThenBy(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id)
                         .Equals(def.Description.Id, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                    .ThenBy(def => def.Description.Name, new Utils.NaturalStringComparer())]
-                : [.. allHeraldryDefs.OrderBy(def => def.Description.Name, new Utils.NaturalStringComparer())];
+                    .ThenBy(def => def.Description.Name, new NaturalStringComparer())]
+                : [.. allHeraldryDefs.OrderBy(def => def.Description.Name, new NaturalStringComparer())];
             loadingNotification?.SetActive(false);
             OnAllHeraldryLoaded();
             UpdateCounter();
@@ -162,11 +168,41 @@ namespace HeraldryPicker.Widgets
             selectedElement = null;
         }
 
-        public IEnumerable<string> GetFactionNames()
+        public IEnumerable<string> GetFilterGroups()
         {
             return allHeraldryDefs
                 .Select(def => FactionGroupManager.GetGroupForHeraldry(def.Description.Id))
-                .Distinct();
+                .Where(g => !g.Equals("Dupe", StringComparison.OrdinalIgnoreCase))
+                .Distinct()
+                .OrderBy(g => g, new NaturalStringComparer());
+        }
+
+        public void PopulateFilterDropdown()
+        {
+            if (filterDropdown == null) return;
+
+            filterDropdown.ClearOptions();
+            filterDropdown.onValueChanged.RemoveAllListeners();
+
+            var options = new List<string> { "All" };
+
+            if (FactionGroupManager.IsCustomFilterActive)
+            {
+                options.AddRange(GetFilterGroups());
+            }
+            else
+            {
+                options.Add("Vanilla");
+                options.Add("Modded");
+            }
+
+            filterDropdown.AddOptions(options);
+
+            filterDropdown.onValueChanged.AddListener(index =>
+            {
+                string selectedFilter = filterDropdown.options[index].text;
+                FilterHeraldries(selectedFilter);
+            });
         }
 
         public void FilterHeraldries(string filterType)
