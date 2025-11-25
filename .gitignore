@@ -10,5 +10,6 @@ obj/
 *.dll
 *.pdb
 
-# External References
-/src/References
+# GitHub releases
+*.zip
+CHANGELOG.md
