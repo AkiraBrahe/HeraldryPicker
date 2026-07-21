@@ -1,9 +1,8 @@
-﻿using BattleTech;
+using BattleTech;
 using BattleTech.UI;
 using BattleTech.UI.TMProWrapper;
 using HeraldryPicker.Widgets;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;

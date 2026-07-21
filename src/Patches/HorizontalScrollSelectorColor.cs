@@ -1,4 +1,4 @@
-﻿using BattleTech.Rendering.MechCustomization;
+using BattleTech.Rendering.MechCustomization;
 using BattleTech.UI;
 using BattleTech.UI.TMProWrapper;
 using UnityEngine;
